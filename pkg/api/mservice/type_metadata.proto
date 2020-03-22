@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package mservice;
+
+// Metadata describes metadata or the object
+message Metadata {
+    oneof filename_optional {
+        // In case object is a file, it can have filename
+        string filename = 100;
+    }
+}

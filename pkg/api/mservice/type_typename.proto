@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package mservice;
+
+// TypeName describes type or name of the object
+message TypeName {
+    oneof type_optional {
+        // Type of the object
+        // Object can be typed/identified either by type or by name
+        uint32 type = 100;
+    }
+
+    oneof name_optional {
+        // Name of the object
+        // Object can be typed/identified either by type or by name
+        string name = 200;
+    }
+}

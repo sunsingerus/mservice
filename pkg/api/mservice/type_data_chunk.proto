@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package mservice;
+
+import "type_header.proto";
+import "type_metadata.proto";
+
+enum DataChunkType {
+    // Due to first enum value has to be zero in proto3
+    DATA_CHUNK_RESERVED    = 0;
+    DATA_CHUNK_UNSPECIFIED = 100;
+    DATA_CHUNK_DATA        = 200;
+}
+
+// DataChunk is a chunk of data transferred as a single piece.
+// Can be part of bigger data, transferred by chunks
+message DataChunk {
+    Header header = 100;
+
+    oneof metadata_optional {
+        // Metadata of the data
+        Metadata metadata = 200;
+    }
+
+    oneof len_optional {
+        // Len of the whole data
+        uint64 len = 300;
+    }
+
+    oneof offset_optional {
+        // Offset of the current chunk in the whole data
+        uint64 offset = 400;
+    }
+
+    oneof last_optional {
+        // Last identifies last chunk of the data within one data transfer
+        bool last = 500;
+    }
+
+    // Bytes is the purpose of the whole data chunk type
+    // May contain any arbitrary sequence of bytes no longer than 2^32
+    bytes bytes = 600;
+}

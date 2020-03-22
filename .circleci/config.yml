@@ -1,0 +1,71 @@
+#
+# Full example id available here:
+# https://circleci.com/docs/2.0/configuration-reference/#full-example
+#
+version: 2.1
+jobs:
+  build_master:
+    machine:
+      enabled: true
+    steps:
+      - checkout
+      - run:
+          name: Set env vars
+          command: |
+            echo "Set ENV vars"
+
+            echo 'export RELEASE=latest' >> $BASH_ENV
+      - run:
+          name: Build Docker images
+          command: |
+            echo "Build Docker images"
+
+            docker build -f dockerfile/service/Dockerfile -t $DOCKERHUB_REPO/mservice-service:$RELEASE .
+            docker build -f dockerfile/client/Dockerfile -t $DOCKERHUB_REPO/mservice-client:$RELEASE .
+      - run:
+          name: Push Docker images
+          command: |
+            echo "Push Docker images to dockerhub :$RELEASE"
+
+            docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
+
+            docker push $DOCKERHUB_REPO/mservice-service:$RELEASE
+            docker push $DOCKERHUB_REPO/mservice-client:$RELEASE
+  build_branch:
+    machine:
+      enabled: true
+    steps:
+      - checkout
+      - run:
+          name: Set ENV vars
+          command: |
+            echo 'export RELEASE=$(cat release)' >> $BASH_ENV
+      - run:
+          name: Build Docker images
+          command: |
+            echo "Build Docker images"
+
+            docker build -f dockerfile/service/Dockerfile -t $DOCKERHUB_REPO/mservice-service:$RELEASE .
+            docker build -f dockerfile/client/Dockerfile -t $DOCKERHUB_REPO/mservice-client:$RELEASE .
+      - run:
+          name: Push Docker images
+          command: |
+            echo "Push Docker images to dockerhub :$RELEASE"
+
+            docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
+
+            docker push $DOCKERHUB_REPO/mservice-service:$RELEASE
+            docker push $DOCKERHUB_REPO/mservice-client:$RELEASE
+workflows:
+  version: 2.1
+  build_and_deploy:
+    jobs:
+      - build_master:
+          filters:
+            branches:
+              only: master
+      - build_branch:
+          filters:
+            branches:
+              only: /[0-9]+\.[0-9]+\.[0-9]+/
+  

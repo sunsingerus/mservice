@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package mservice;
+
+import "type_header.proto";
+
+enum CommandType {
+    // Due to first enum value has to be zero in proto3
+    COMMAND_RESERVED         = 0;
+    COMMAND_UNSPECIFIED      = 100;
+    COMMAND_ECHO_REQUEST     = 200;
+    COMMAND_ECHO_REPLY       = 300;
+    COMMAND_CONFIG_REQUEST   = 400;
+    COMMAND_CONFIG           = 500;
+    COMMAND_METRICS_SCHEDULE = 600;
+    COMMAND_METRICS_REQUEST  = 700;
+    COMMAND_METRICS          = 800;
+    COMMAND_DATA_SCHEDULE    = 900;
+    COMMAND_DATA_REQUEST     = 1000;
+    COMMAND_DATA             = 1100;
+}
+
+message Command {
+    Header header = 100;
+}

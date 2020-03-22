@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mservice-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mservice-service
+  template:
+    metadata:
+      labels:
+        app: mservice-service
+    spec:
+      containers:
+        - name: service
+          image: sunsingerus/mservice-service:latest
+          imagePullPolicy: Always
+          env:
+            - name: PROXY_ADDRESS_FORWARDING
+              value: "true"
+          ports:
+            - name: grpc
+              containerPort: 10000
+
+          # https://github.com/grpc/grpc/blob/master/doc/health-checking.md
+          # https://github.com/grpc-ecosystem/grpc-health-probe
+          livenessProbe:
+            exec:
+              command:
+                - "/grpc-health-probe"
+                - "-addr=:10000"
+            initialDelaySeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - "/grpc-health-probe"
+                - "-addr=:10000"
+            initialDelaySeconds: 5
+
+#          readinessProbe:
+#            httpGet:
+#              path: /auth/realms/master
+#              port: 8080

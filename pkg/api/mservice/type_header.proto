@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package mservice;
+
+import "google/protobuf/timestamp.proto";
+import "type_typename.proto";
+import "type_uuid.proto";
+
+// Header describes header or the object
+message Header {
+    // Type + Name pair
+    TypeName type_name = 100;
+
+    oneof version_optional {
+        // Version of the object
+        uint32 version = 200;
+    }
+
+    oneof uuid_optional {
+        // Unique identified of the object
+        UUID uuid = 300;
+    }
+
+    oneof uuid_reference_optional {
+        // Unique identifier of the reference object, if necessary
+        UUID uuid_reference = 400;
+    }
+
+    oneof timestamp_optional {
+        // Timestamp is optional
+        google.protobuf.Timestamp ts = 500;
+    }
+
+    oneof description_optional {
+        // Description is optional
+        string description = 600;
+    }
+}
