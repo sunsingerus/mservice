@@ -25,7 +25,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/sunsingerus/mservice/pkg/mock/internal/leakcheck"
+	"github.com/sunsingerus/mservice/pkg/test/client/internal/leakcheck"
 )
 
 var lcFailed uint32

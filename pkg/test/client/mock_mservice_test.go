@@ -20,10 +20,10 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/proto"
-	"github.com/sunsingerus/mservice/pkg/mock/internal/grpctest"
+	"github.com/sunsingerus/mservice/pkg/test/client/internal/grpctest"
 
 	datapb "github.com/sunsingerus/mservice/pkg/api/mservice"
-	datamock "github.com/sunsingerus/mservice/pkg/mock"
+	datamock "github.com/sunsingerus/mservice/pkg/test/client"
 )
 
 type s struct {
