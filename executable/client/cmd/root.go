@@ -14,9 +14,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/MakeNowJust/heredoc"
 	"os"
 
+	"github.com/MakeNowJust/heredoc"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	cmd "github.com/spf13/cobra"

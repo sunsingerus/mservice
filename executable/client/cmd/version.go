@@ -14,6 +14,7 @@ package cmd
 
 import (
 	"fmt"
+
 	cmd "github.com/spf13/cobra"
 
 	"github.com/sunsingerus/mservice/pkg/version"

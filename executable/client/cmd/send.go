@@ -15,14 +15,15 @@ package cmd
 import (
 	"context"
 	"errors"
-	log "github.com/sirupsen/logrus"
-	cmd "github.com/spf13/cobra"
-	conf "github.com/spf13/viper"
-	"google.golang.org/grpc"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	log "github.com/sirupsen/logrus"
+	cmd "github.com/spf13/cobra"
+	conf "github.com/spf13/viper"
+	"google.golang.org/grpc"
 
 	pb "github.com/sunsingerus/mservice/pkg/api/mservice"
 	controller "github.com/sunsingerus/mservice/pkg/controller/client"
