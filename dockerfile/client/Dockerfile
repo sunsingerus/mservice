@@ -35,4 +35,4 @@ COPY --from=builder /tmp/client .
 #   --config=/path/to/config
 #   --kube-config=/path/to/kubeconf
 ENTRYPOINT ["/client"]
-CMD ["-logtostderr=true", "-v=1"]
+#CMD ["-logtostderr=true", "-v=1"]

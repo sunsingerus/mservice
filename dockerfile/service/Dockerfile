@@ -44,4 +44,4 @@ COPY --from=builder /go/bin/grpc-health-probe .
 #   --config=/path/to/config
 #   --kube-config=/path/to/kubeconf
 ENTRYPOINT ["/service"]
-CMD ["-logtostderr=true", "-v=1"]
+#CMD ["-logtostderr=true", "-v=1"]
