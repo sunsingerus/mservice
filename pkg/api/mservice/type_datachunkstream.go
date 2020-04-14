@@ -29,7 +29,7 @@ type DataChunkSenderReceiver interface {
 // DataChunkStream implements the following interfaces:
 //	- io.Writer
 //	- io.WriterTo
-//  - io.ReaderFrom
+// 	- io.ReaderFrom
 //	- io.Closer
 // and thus can be used in any functions, which operate these interfaces, such as io.Copy()
 type DataChunkStream struct {
