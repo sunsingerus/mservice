@@ -36,26 +36,6 @@ func (m *MockMServiceControlPlaneClient) EXPECT() *MockMServiceControlPlaneClien
 	return m.recorder
 }
 
-// Commands mocks base method
-func (m *MockMServiceControlPlaneClient) Commands(arg0 context.Context, arg1 ...grpc.CallOption) (mservice.MServiceControlPlane_CommandsClient, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0}
-	for _, a := range arg1 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "Commands", varargs...)
-	ret0, _ := ret[0].(mservice.MServiceControlPlane_CommandsClient)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Commands indicates an expected call of Commands
-func (mr *MockMServiceControlPlaneClientMockRecorder) Commands(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0}, arg1...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Commands", reflect.TypeOf((*MockMServiceControlPlaneClient)(nil).Commands), varargs...)
-}
-
 // Data mocks base method
 func (m *MockMServiceControlPlaneClient) Data(arg0 context.Context, arg1 ...grpc.CallOption) (mservice.MServiceControlPlane_DataClient, error) {
 	m.ctrl.T.Helper()
@@ -74,26 +54,6 @@ func (mr *MockMServiceControlPlaneClientMockRecorder) Data(arg0 interface{}, arg
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0}, arg1...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Data", reflect.TypeOf((*MockMServiceControlPlaneClient)(nil).Data), varargs...)
-}
-
-// Metrics mocks base method
-func (m *MockMServiceControlPlaneClient) Metrics(arg0 context.Context, arg1 ...grpc.CallOption) (mservice.MServiceControlPlane_MetricsClient, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0}
-	for _, a := range arg1 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "Metrics", varargs...)
-	ret0, _ := ret[0].(mservice.MServiceControlPlane_MetricsClient)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Metrics indicates an expected call of Metrics
-func (mr *MockMServiceControlPlaneClientMockRecorder) Metrics(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0}, arg1...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Metrics", reflect.TypeOf((*MockMServiceControlPlaneClient)(nil).Metrics), varargs...)
 }
 
 // MockMServiceControlPlane_DataClient is a mock of MServiceControlPlane_DataClient interface

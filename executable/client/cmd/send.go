@@ -14,11 +14,9 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 	cmd "github.com/spf13/cobra"
@@ -27,8 +25,6 @@ import (
 
 	pb "github.com/sunsingerus/mservice/pkg/api/mservice"
 	controller "github.com/sunsingerus/mservice/pkg/controller/client"
-	"github.com/sunsingerus/mservice/pkg/transiever/client"
-	"github.com/sunsingerus/mservice/pkg/transiever/service"
 	"github.com/sunsingerus/mservice/pkg/version"
 )
 
@@ -49,16 +45,16 @@ var sendCmd = &cmd.Command{
 	Use:   "send",
 	Short: "Send file or STDIN to service",
 	Args: func(cmd *cmd.Command, args []string) error {
-		if len(args) < 1 {
-			return errors.New("requires an filename as argument")
-		}
+		//if len(args) < 1 {
+		//	return errors.New("requires an filename as argument")
+		//}
 		return nil
 	},
 	Run: func(cmd *cmd.Command, args []string) {
 		//filename := args[0]
 
 		// Set OS signals and termination context
-		ctx, cancelFunc := context.WithCancel(context.Background())
+		_, cancelFunc := context.WithCancel(context.Background())
 		stopChan := make(chan os.Signal, 2)
 		signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
 		go func() {
@@ -80,18 +76,6 @@ var sendCmd = &cmd.Command{
 
 		client := pb.NewMServiceControlPlaneClient(conn)
 
-		transiever_client.Init()
-
-		log.Infof("About to cal RunMServiceControlPlaneClient()")
-		time.Sleep(5 * time.Second)
-		go transiever_client.RunMServiceControlPlaneClient(client)
-		log.Infof("Wait...")
-		time.Sleep(5 * time.Second)
-		go controller.IncomingCommandsHandler(transiever_service.GetIncomingQueue(), transiever_service.GetOutgoingQueue())
-		log.Infof("Wait...")
-		time.Sleep(5 * time.Second)
-		go controller.SendEchoRequest(transiever_service.GetOutgoingQueue())
-
 		if sendFilename != "" {
 			controller.SendFile(client, sendFilename)
 		}
@@ -99,9 +83,6 @@ var sendCmd = &cmd.Command{
 		if sendSTDIN {
 			controller.SendStdin(client)
 		}
-
-		log.Infof("Press Ctrl+C to exit...")
-		<-ctx.Done()
 	},
 }
 

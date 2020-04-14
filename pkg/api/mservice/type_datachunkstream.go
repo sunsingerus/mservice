@@ -14,24 +14,14 @@ package mservice
 
 import (
 	"fmt"
-	log "github.com/golang/glog"
 	"io"
+
+	log "github.com/sirupsen/logrus"
 )
 
-type DataChunkStream struct {
-	Typ            uint32
-	Name           string
-	Metadata       *Metadata
-	Version        uint32
-	UUID_reference string
-	Description    string
-	Offset         uint64
-}
-
-func (dcs *DataChunkStream) ensureMetadata() {
-	if dcs.Metadata == nil {
-		dcs.Metadata = new(Metadata)
-	}
+type DataChunkSenderReceiver interface {
+	Send(*DataChunk) error
+	Recv() (*DataChunk, error)
 }
 
 // OutgoingDataChunkStream is a handler to open stream of DataChunk's
@@ -44,33 +34,40 @@ func (dcs *DataChunkStream) ensureMetadata() {
 //	- io.Closer
 //	- io.WriterTo
 // and thus can be used in any functions, which operate these interfaces, such as io.Copy()
-type OutgoingDataChunkStream struct {
-	Client MServiceControlPlane_DataClient
-	DataChunkStream
+// IncomingDataChunkStream is a handler to open stream of DataChunk's
+// Inspired by os.File handler and is expected to be used in the same context
+// OpenDataStream()
+// Write()
+// Close()
+// it implements the following interfaces:
+//	- io.Writer
+//	- io.Closer
+//	- io.WriterTo
+// and thus can be used in any functions, which operate these interfaces, such as io.Copy()
+type DataChunkStream struct {
+	Owner DataChunkSenderReceiver
+
+	Type           uint32
+	Name           string
+	Metadata       *Metadata
+	Version        uint32
+	UUID_reference string
+	Description    string
+	Offset         uint64
 }
 
-// OpenOutgoingDataChunkStream opens DataChunk's stream with specified parameters
+// OpenDataChunkStream opens DataChunk's stream
 // Inspired by os.OpenFile()
-func OpenOutgoingDataChunkStream(
-	client MServiceControlPlane_DataClient,
-	_type uint32,
-	name string,
-	metadata *Metadata,
-	version uint32,
-	uuid_reference string,
-	description string,
-) (*OutgoingDataChunkStream, error) {
-	return &OutgoingDataChunkStream{
-		Client: client,
-		DataChunkStream: DataChunkStream{
-			Typ:            _type,
-			Name:           name,
-			Metadata:       metadata,
-			Version:        version,
-			UUID_reference: uuid_reference,
-			Description:    description,
-		},
+func OpenDataChunkStream(owner DataChunkSenderReceiver) (*DataChunkStream, error) {
+	return &DataChunkStream{
+		Owner: owner,
 	}, nil
+}
+
+func (s *DataChunkStream) ensureMetadata() {
+	if s.Metadata == nil {
+		s.Metadata = new(Metadata)
+	}
 }
 
 // Implements io.Writer
@@ -82,7 +79,7 @@ func OpenOutgoingDataChunkStream(
 // Write must not modify the slice data, even temporarily.
 //
 // Implementations must not retain p.
-func (s *OutgoingDataChunkStream) Write(p []byte) (n int, err error) {
+func (s *DataChunkStream) Write(p []byte) (n int, err error) {
 	n = len(p)
 	log.Infof("before Send()")
 	var md *Metadata
@@ -91,7 +88,7 @@ func (s *OutgoingDataChunkStream) Write(p []byte) (n int, err error) {
 		md = s.Metadata
 	}
 	dataChunk := NewDataChunk(md, &s.Offset, false, p)
-	err = s.Client.Send(dataChunk)
+	err = s.Owner.Send(dataChunk)
 	if err == io.EOF {
 		log.Infof("Send() received EOF, return from func")
 		n = 0
@@ -107,80 +104,66 @@ func (s *OutgoingDataChunkStream) Write(p []byte) (n int, err error) {
 	return
 }
 
-// Implements io.Closer
+// Implements io.WriterTo
 //
-// Closer is the interface that wraps the basic Close method.
+// WriterTo is the interface that wraps the WriteTo method.
 //
-// The behavior of Close after the first call is undefined.
-// Specific implementations may document their own behavior.
-func (s *OutgoingDataChunkStream) Close() error {
-	dataChunk := NewDataChunk(nil, nil, true, nil)
-	err := s.Client.Send(dataChunk)
-	if err == io.EOF {
-		log.Infof("Send() received EOF, return from func")
-	}
-	if err != nil {
-		log.Fatalf("failed to Send() %v", err)
-	}
-	log.Infof("after Send()")
-	return err
-}
-
-// Implements io.ReaderFrom
+// WriteTo writes data to w until there's no more data to write or
+// when an error occurs. The return value n is the number of bytes
+// written. Any error encountered during the write is also returned.
 //
-// ReaderFrom is the interface that wraps the ReadFrom method.
-//
-// ReadFrom reads data from r until EOF or error.
-// The return value n is the number of bytes read.
-// Any error except io.EOF encountered during the read is also returned.
-//
-// The Copy function uses ReaderFrom if available.
-func (s *OutgoingDataChunkStream) ReadFrom(src io.Reader) (n int64, err error) {
+// The Copy function uses WriterTo if available.
+func (s *DataChunkStream) WriteTo(dst io.Writer) (n int64, err error) {
 	n = 0
-	p := make([]byte, 1024)
 	for {
-		read, readErr := src.Read(p)
-		n += int64(read)
-		if read > 0 {
-			_, writeErr := s.Write(p[:read])
-			if writeErr != nil {
-				err = writeErr
+		dataChunk, readErr := s.Owner.Recv()
+
+		if dataChunk != nil {
+			// We have data chunk received
+			filename := "not specified"
+			if md := dataChunk.GetMetadata(); md != nil {
+				filename = md.GetFilename()
+				if filename != "" {
+					s.ensureMetadata()
+					s.Metadata.SetFilename(filename)
+				}
+			}
+			offset := "not specified"
+			if off, ok := dataChunk.GetOffsetWithAvailabilityReport(); ok {
+				offset = fmt.Sprintf("%d", off)
+			}
+
+			len := len(dataChunk.GetBytes())
+			log.Infof("Data.Recv() got msg. filename: '%s', chunk len: %d, chunk offset: %s, last chunk: %v",
+				filename,
+				len,
+				offset,
+				dataChunk.GetLast(),
+			)
+			fmt.Printf("%s\n", string(dataChunk.GetBytes()))
+
+			_, _ = dst.Write(dataChunk.GetBytes())
+			n += int64(len)
+
+			if dataChunk.GetLast() {
 				return
 			}
 		}
-		if readErr == io.EOF {
-			readErr = nil
+
+		if readErr == nil {
+			// All went well, ready to receive more data
+		} else if readErr == io.EOF {
+			// Correct EOF
+			log.Infof("Data.Recv() get EOF")
+			err = readErr
 			return
-		}
-		if readErr != nil {
+		} else {
+			// Stream broken
+			log.Infof("Data.Recv() got err: %v", err)
+			err = readErr
 			return
 		}
 	}
-}
-
-// IncomingDataChunkStream is a handler to open stream of DataChunk's
-// Inspired by os.File handler and is expected to be used in the same context
-// OpenDataStream()
-// Write()
-// Close()
-// it implements the following interfaces:
-//	- io.Writer
-//	- io.Closer
-//	- io.WriterTo
-// and thus can be used in any functions, which operate these interfaces, such as io.Copy()
-type IncomingDataChunkStream struct {
-	server MServiceControlPlane_DataServer
-	DataChunkStream
-}
-
-// OpenOutgoingDataChunkStream opens DataChunk's stream with specified parameters
-// Inspired by os.OpenFile()
-func OpenIncomingDataChunkStream(
-	server MServiceControlPlane_DataServer,
-) (*IncomingDataChunkStream, error) {
-	return &IncomingDataChunkStream{
-		server: server,
-	}, nil
 }
 
 // Implements io.Reader
@@ -211,63 +194,37 @@ func OpenIncomingDataChunkStream(
 // nothing happened; in particular it does not indicate EOF.
 //
 // Implementations must not retain p.
-func (s *IncomingDataChunkStream) Read(p []byte) (n int, err error) {
+func (s *DataChunkStream) Read(p []byte) (n int, err error) {
 	return
 }
 
-// Implements io.WriterTo
+// Implements io.ReaderFrom
 //
-// WriterTo is the interface that wraps the WriteTo method.
+// ReaderFrom is the interface that wraps the ReadFrom method.
 //
-// WriteTo writes data to w until there's no more data to write or
-// when an error occurs. The return value n is the number of bytes
-// written. Any error encountered during the write is also returned.
+// ReadFrom reads data from r until EOF or error.
+// The return value n is the number of bytes read.
+// Any error except io.EOF encountered during the read is also returned.
 //
-// The Copy function uses WriterTo if available.
-func (s *IncomingDataChunkStream) WriteTo(dst io.Writer) (n int64, err error) {
+// The Copy function uses ReaderFrom if available.
+func (s *DataChunkStream) ReadFrom(src io.Reader) (n int64, err error) {
 	n = 0
+	p := make([]byte, 1024)
 	for {
-		dataChunk, readErr := s.server.Recv()
-
-		if dataChunk != nil {
-			// We have data chunk received
-			filename := "not specified"
-			if md := dataChunk.GetMetadata(); md != nil {
-				filename = md.GetFilename()
-				if filename != "" {
-					s.ensureMetadata()
-					s.Metadata.SetFilename(filename)
-				}
+		read, readErr := src.Read(p)
+		n += int64(read)
+		if read > 0 {
+			_, writeErr := s.Write(p[:read])
+			if writeErr != nil {
+				err = writeErr
+				return
 			}
-			offset := "not specified"
-			if off, ok := dataChunk.GetOffsetWithAvailabilityReport(); ok {
-				offset = fmt.Sprintf("%d", off)
-			}
-
-			len := len(dataChunk.GetBytes())
-			log.Infof("Data.Recv() got msg. filename: '%s', chunk len: %d, chunk offset: %s, last chunk: %v",
-				filename,
-				len,
-				offset,
-				dataChunk.GetLast(),
-			)
-			fmt.Printf("%s\n", string(dataChunk.GetBytes()))
-
-			_, _ = dst.Write(dataChunk.GetBytes())
-			n += int64(len)
 		}
-
-		if readErr == nil {
-			// All went well, ready to receive more data
-		} else if readErr == io.EOF {
-			// Correct EOF
-			log.Infof("Data.Recv() get EOF")
-			err = readErr
+		if readErr == io.EOF {
+			readErr = nil
 			return
-		} else {
-			// Stream broken
-			log.Infof("Data.Recv() got err: %v", err)
-			err = readErr
+		}
+		if readErr != nil {
 			return
 		}
 	}
@@ -279,6 +236,24 @@ func (s *IncomingDataChunkStream) WriteTo(dst io.Writer) (n int64, err error) {
 //
 // The behavior of Close after the first call is undefined.
 // Specific implementations may document their own behavior.
-func (s *IncomingDataChunkStream) Close() error {
-	return nil
+func (s *DataChunkStream) Close() error {
+	if s.Offset == 0 {
+		// No data were send earlier, can simply close
+		return nil
+	}
+
+	// Some data were send earlier, need to finalize transmission first
+
+	// Send "last" data chunk
+	dataChunk := NewDataChunk(nil, nil, true, nil)
+	err := s.Owner.Send(dataChunk)
+	if err == io.EOF {
+		log.Infof("Send() received EOF, return from func")
+	}
+	if err != nil {
+		log.Fatalf("failed to Send() %v", err)
+	}
+	log.Infof("after Send()")
+
+	return err
 }

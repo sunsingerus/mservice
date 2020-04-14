@@ -29,19 +29,15 @@ func init() {
 }
 
 var fileDescriptor_14cbfd6d5e3fb20b = []byte{
-	// 186 bytes of a gzipped FileDescriptorProto
+	// 126 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x29, 0x4e, 0x2d, 0x2a,
 	0xcb, 0x4c, 0x4e, 0x8d, 0xcf, 0x85, 0x31, 0x92, 0xf3, 0xf3, 0x4a, 0x8a, 0xf2, 0x73, 0xe2, 0x0b,
-	0x72, 0x12, 0xf3, 0x52, 0xf5, 0x0a, 0x8a, 0xf2, 0x4b, 0xf2, 0x85, 0x38, 0x60, 0xb2, 0x52, 0x42,
-	0x25, 0x95, 0x05, 0x20, 0x35, 0xb9, 0xb9, 0x89, 0x79, 0x29, 0x10, 0x59, 0x29, 0x51, 0xb0, 0x58,
-	0x4a, 0x62, 0x49, 0x62, 0x7c, 0x72, 0x46, 0x69, 0x5e, 0x36, 0x54, 0x58, 0x10, 0x2c, 0x9c, 0x9b,
-	0x5a, 0x52, 0x94, 0x99, 0x0c, 0x11, 0x32, 0xda, 0xc9, 0xc8, 0x25, 0xe2, 0x1b, 0x0c, 0x31, 0xca,
-	0x19, 0x62, 0x4f, 0x00, 0xc8, 0x1a, 0x21, 0x33, 0x2e, 0x0e, 0x67, 0x88, 0x99, 0xc5, 0x42, 0x82,
-	0x7a, 0x30, 0xdb, 0xf4, 0xa0, 0x62, 0x52, 0x98, 0x42, 0x4a, 0x0c, 0x1a, 0x8c, 0x06, 0x8c, 0x42,
-	0x66, 0x5c, 0x2c, 0x2e, 0x89, 0x25, 0x89, 0x42, 0xc2, 0x08, 0x05, 0x20, 0xbe, 0x33, 0xc8, 0x19,
-	0x52, 0xd8, 0x04, 0xa1, 0xfa, 0x0c, 0xb9, 0xd8, 0x7d, 0xc1, 0x0e, 0x2b, 0x16, 0x12, 0x40, 0xa8,
-	0x82, 0x08, 0x49, 0x61, 0x88, 0x80, 0x34, 0x25, 0xb1, 0x81, 0xbd, 0x60, 0x0c, 0x08, 0x00, 0x00,
-	0xff, 0xff, 0x75, 0x43, 0xfb, 0xf9, 0x32, 0x01, 0x00, 0x00,
+	0x72, 0x12, 0xf3, 0x52, 0xf5, 0x0a, 0x8a, 0xf2, 0x4b, 0xf2, 0x85, 0x38, 0x60, 0xb2, 0x52, 0xa2,
+	0x25, 0x95, 0x05, 0xa9, 0xf1, 0x29, 0x89, 0x25, 0x89, 0xf1, 0xc9, 0x19, 0xa5, 0x79, 0xd9, 0x10,
+	0x05, 0x46, 0x7e, 0x5c, 0x22, 0xbe, 0xc1, 0x10, 0x25, 0xce, 0x10, 0xfd, 0x01, 0x20, 0xed, 0x42,
+	0x66, 0x5c, 0x2c, 0x2e, 0x89, 0x25, 0x89, 0x42, 0xc2, 0x7a, 0x30, 0x13, 0xf4, 0x40, 0x7c, 0x67,
+	0x90, 0x56, 0x29, 0x6c, 0x82, 0x4a, 0x0c, 0x1a, 0x8c, 0x06, 0x8c, 0x49, 0x6c, 0x60, 0x63, 0x8d,
+	0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0x65, 0x45, 0xea, 0x61, 0x9f, 0x00, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -56,18 +52,10 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MServiceControlPlaneClient interface {
-	// Bi-directional Commands stream
-	//
-	// Commands are sent from service to client and from client to server
-	Commands(ctx context.Context, opts ...grpc.CallOption) (MServiceControlPlane_CommandsClient, error)
 	// Bi-directional Data stream
 	//
 	// Some commands can followed by data load. Be it logs, dumps, etc.
 	Data(ctx context.Context, opts ...grpc.CallOption) (MServiceControlPlane_DataClient, error)
-	// Metrics stream
-	//
-	// Some commands can be followed by metrics stream.
-	Metrics(ctx context.Context, opts ...grpc.CallOption) (MServiceControlPlane_MetricsClient, error)
 }
 
 type mServiceControlPlaneClient struct {
@@ -78,39 +66,8 @@ func NewMServiceControlPlaneClient(cc grpc.ClientConnInterface) MServiceControlP
 	return &mServiceControlPlaneClient{cc}
 }
 
-func (c *mServiceControlPlaneClient) Commands(ctx context.Context, opts ...grpc.CallOption) (MServiceControlPlane_CommandsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MServiceControlPlane_serviceDesc.Streams[0], "/mservice.MServiceControlPlane/Commands", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &mServiceControlPlaneCommandsClient{stream}
-	return x, nil
-}
-
-type MServiceControlPlane_CommandsClient interface {
-	Send(*Command) error
-	Recv() (*Command, error)
-	grpc.ClientStream
-}
-
-type mServiceControlPlaneCommandsClient struct {
-	grpc.ClientStream
-}
-
-func (x *mServiceControlPlaneCommandsClient) Send(m *Command) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *mServiceControlPlaneCommandsClient) Recv() (*Command, error) {
-	m := new(Command)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 func (c *mServiceControlPlaneClient) Data(ctx context.Context, opts ...grpc.CallOption) (MServiceControlPlane_DataClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MServiceControlPlane_serviceDesc.Streams[1], "/mservice.MServiceControlPlane/Data", opts...)
+	stream, err := c.cc.NewStream(ctx, &_MServiceControlPlane_serviceDesc.Streams[0], "/mservice.MServiceControlPlane/Data", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -140,98 +97,24 @@ func (x *mServiceControlPlaneDataClient) Recv() (*DataChunk, error) {
 	return m, nil
 }
 
-func (c *mServiceControlPlaneClient) Metrics(ctx context.Context, opts ...grpc.CallOption) (MServiceControlPlane_MetricsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MServiceControlPlane_serviceDesc.Streams[2], "/mservice.MServiceControlPlane/Metrics", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &mServiceControlPlaneMetricsClient{stream}
-	return x, nil
-}
-
-type MServiceControlPlane_MetricsClient interface {
-	Send(*Metric) error
-	CloseAndRecv() (*Metric, error)
-	grpc.ClientStream
-}
-
-type mServiceControlPlaneMetricsClient struct {
-	grpc.ClientStream
-}
-
-func (x *mServiceControlPlaneMetricsClient) Send(m *Metric) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *mServiceControlPlaneMetricsClient) CloseAndRecv() (*Metric, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(Metric)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // MServiceControlPlaneServer is the server API for MServiceControlPlane service.
 type MServiceControlPlaneServer interface {
-	// Bi-directional Commands stream
-	//
-	// Commands are sent from service to client and from client to server
-	Commands(MServiceControlPlane_CommandsServer) error
 	// Bi-directional Data stream
 	//
 	// Some commands can followed by data load. Be it logs, dumps, etc.
 	Data(MServiceControlPlane_DataServer) error
-	// Metrics stream
-	//
-	// Some commands can be followed by metrics stream.
-	Metrics(MServiceControlPlane_MetricsServer) error
 }
 
 // UnimplementedMServiceControlPlaneServer can be embedded to have forward compatible implementations.
 type UnimplementedMServiceControlPlaneServer struct {
 }
 
-func (*UnimplementedMServiceControlPlaneServer) Commands(srv MServiceControlPlane_CommandsServer) error {
-	return status.Errorf(codes.Unimplemented, "method Commands not implemented")
-}
 func (*UnimplementedMServiceControlPlaneServer) Data(srv MServiceControlPlane_DataServer) error {
 	return status.Errorf(codes.Unimplemented, "method Data not implemented")
-}
-func (*UnimplementedMServiceControlPlaneServer) Metrics(srv MServiceControlPlane_MetricsServer) error {
-	return status.Errorf(codes.Unimplemented, "method Metrics not implemented")
 }
 
 func RegisterMServiceControlPlaneServer(s *grpc.Server, srv MServiceControlPlaneServer) {
 	s.RegisterService(&_MServiceControlPlane_serviceDesc, srv)
-}
-
-func _MServiceControlPlane_Commands_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MServiceControlPlaneServer).Commands(&mServiceControlPlaneCommandsServer{stream})
-}
-
-type MServiceControlPlane_CommandsServer interface {
-	Send(*Command) error
-	Recv() (*Command, error)
-	grpc.ServerStream
-}
-
-type mServiceControlPlaneCommandsServer struct {
-	grpc.ServerStream
-}
-
-func (x *mServiceControlPlaneCommandsServer) Send(m *Command) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *mServiceControlPlaneCommandsServer) Recv() (*Command, error) {
-	m := new(Command)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
 }
 
 func _MServiceControlPlane_Data_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -260,52 +143,15 @@ func (x *mServiceControlPlaneDataServer) Recv() (*DataChunk, error) {
 	return m, nil
 }
 
-func _MServiceControlPlane_Metrics_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MServiceControlPlaneServer).Metrics(&mServiceControlPlaneMetricsServer{stream})
-}
-
-type MServiceControlPlane_MetricsServer interface {
-	SendAndClose(*Metric) error
-	Recv() (*Metric, error)
-	grpc.ServerStream
-}
-
-type mServiceControlPlaneMetricsServer struct {
-	grpc.ServerStream
-}
-
-func (x *mServiceControlPlaneMetricsServer) SendAndClose(m *Metric) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *mServiceControlPlaneMetricsServer) Recv() (*Metric, error) {
-	m := new(Metric)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 var _MServiceControlPlane_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "mservice.MServiceControlPlane",
 	HandlerType: (*MServiceControlPlaneServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Commands",
-			Handler:       _MServiceControlPlane_Commands_Handler,
-			ServerStreams: true,
-			ClientStreams: true,
-		},
-		{
 			StreamName:    "Data",
 			Handler:       _MServiceControlPlane_Data_Handler,
 			ServerStreams: true,
-			ClientStreams: true,
-		},
-		{
-			StreamName:    "Metrics",
-			Handler:       _MServiceControlPlane_Metrics_Handler,
 			ClientStreams: true,
 		},
 	},

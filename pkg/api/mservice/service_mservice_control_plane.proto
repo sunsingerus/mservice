@@ -2,23 +2,11 @@ syntax = "proto3";
 
 package mservice;
 
-import "type_command.proto";
 import "type_data_chunk.proto";
-import "type_metric.proto";
 
 service MServiceControlPlane {
-	// Bi-directional Commands stream
-	//
-	// Commands are sent from service to client and from client to server
-	rpc Commands (stream Command) returns (stream Command) {}
-
 	// Bi-directional Data stream
 	//
 	// Some commands can followed by data load. Be it logs, dumps, etc.
 	rpc Data (stream DataChunk) returns (stream DataChunk) {}
-
-	// Metrics stream
-	//
-	// Some commands can be followed by metrics stream.
-	rpc Metrics(stream Metric) returns (Metric) {}
 }

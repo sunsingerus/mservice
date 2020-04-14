@@ -13,54 +13,55 @@
 package transiever_service
 
 import (
-	"github.com/sunsingerus/mservice/pkg/transiever"
+	"bytes"
 	"io"
-	"os"
+	"strings"
 
-	log "github.com/golang/glog"
+	log "github.com/sirupsen/logrus"
 
 	pb "github.com/sunsingerus/mservice/pkg/api/mservice"
 )
 
-func Init() {
-	transiever.Init()
-}
-
-func GetOutgoingQueue() chan *pb.Command {
-	return transiever.GetOutgoingQueue()
-}
-
-func GetIncomingQueue() chan *pb.Command {
-	return transiever.GetIncomingQueue()
-}
-
 type MServiceControlPlaneEndpoint struct {
 	pb.UnimplementedMServiceControlPlaneServer
-}
-
-func (s *MServiceControlPlaneEndpoint) Commands(server pb.MServiceControlPlane_CommandsServer) error {
-	log.Info("Commands() called")
-	defer log.Info("Commands() exited")
-
-	transiever.CommandsExchangeEndlessLoop(server)
-	return nil
 }
 
 func (s *MServiceControlPlaneEndpoint) Data(server pb.MServiceControlPlane_DataServer) error {
 	log.Info("Data() called")
 	defer log.Info("Data() exited")
 
-	stream, _ := pb.OpenIncomingDataChunkStream(server)
-	defer stream.Close()
-	_, err := io.Copy(os.Stdout, stream)
+	// Receive data
 
+	log.Infof("Receive from Client")
+
+	stream, err := pb.OpenDataChunkStream(server)
+	if err != nil {
+		log.Fatalf("OpenIncomingDataChunkStream() failed %v", err)
+		return err
+	}
+	var buf = &bytes.Buffer{}
+	_, err = io.Copy(buf, stream)
 	log.Infof("Incoming filename: %s", stream.Metadata.GetFilename())
+	log.Infof("%s", buf.String())
+	stream.Close()
+
+	// Send back
+	var buf2 = &bytes.Buffer{}
+	buf2.WriteString(strings.ToUpper(buf.String()))
+
+	log.Infof("Send to Client")
+	stream, err = pb.OpenDataChunkStream(server)
+	if err != nil {
+		log.Fatalf("OpenIncomingDataChunkStream() failed %v", err)
+		return err
+	}
+	stream.Type = uint32(pb.DataChunkType_DATA_CHUNK_DATA)
+	stream.Metadata = pb.NewMetadata("returnback.file")
+	stream.UUID_reference = "321"
+	stream.Description = "csed"
+
+	io.Copy(stream, buf2)
+	stream.Close()
+
 	return err
-}
-
-func (s *MServiceControlPlaneEndpoint) Metrics(server pb.MServiceControlPlane_MetricsServer) error {
-	log.Info("Metrics() called")
-	defer log.Info("Metrics() exited")
-
-	return nil
 }

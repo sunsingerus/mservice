@@ -13,48 +13,17 @@
 package transiever_client
 
 import (
+	"bytes"
 	"context"
-	log "github.com/golang/glog"
-	"github.com/sunsingerus/mservice/pkg/transiever"
 	"io"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 
 	pb "github.com/sunsingerus/mservice/pkg/api/mservice"
 )
 
-func Init() {
-	transiever.Init()
-}
-
-func GetOutgoingQueue() chan *pb.Command {
-	return transiever.GetOutgoingQueue()
-}
-
-func GetIncomingQueue() chan *pb.Command {
-	return transiever.GetIncomingQueue()
-}
-
-func RunMServiceControlPlaneClient(client pb.MServiceControlPlaneClient) {
-	// ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	//this code sends token per each RPC call:
-	//	md := metadata.Pairs("authorization", "my-secret-token")
-	//	ctx = metadata.NewOutgoingContext(ctx, md)
-
-	rpcCommands, err := client.Commands(ctx)
-	if err != nil {
-		log.Fatalf("client.Control() failed %v", err)
-		os.Exit(1)
-	}
-	defer rpcCommands.CloseSend()
-
-	log.Infof("Commands() called")
-	transiever.CommandsExchangeEndlessLoop(rpcCommands)
-}
-
-func StreamDataChunks(client pb.MServiceControlPlaneClient, metadata *pb.Metadata, dataSource io.Reader) (n int64, err error) {
+func Exchange(client pb.MServiceControlPlaneClient, metadata *pb.Metadata, dataSource io.Reader) (n int64, err error) {
 	//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -75,19 +44,35 @@ func StreamDataChunks(client pb.MServiceControlPlaneClient, metadata *pb.Metadat
 		rpcData.CloseSend()
 		rpcData.Recv()
 	}()
-	dataChunkStream, err := pb.OpenOutgoingDataChunkStream(
-		rpcData,
-		uint32(pb.DataChunkType_DATA_CHUNK_DATA),
-		"",
-		metadata,
-		0,
-		"123",
-		"desc",
-	)
+
+	// Send to server
+	log.Infof("Send to Server")
+
+	stream, err := pb.OpenDataChunkStream(rpcData)
 	if err != nil {
-		log.Fatalf("OpenOutgoingDataChunkStream() failed %v", err)
+		log.Fatalf("OpenDataChunkStream() failed %v", err)
 		return 0, err
 	}
-	defer dataChunkStream.Close()
-	return io.Copy(dataChunkStream, dataSource)
+	stream.Type = uint32(pb.DataChunkType_DATA_CHUNK_DATA)
+	stream.Metadata = metadata
+	stream.UUID_reference = "123"
+	stream.Description = "desc"
+	io.Copy(stream, dataSource)
+	stream.Close()
+
+	// Receive back
+	log.Infof("Receive from Server")
+
+	stream, err = pb.OpenDataChunkStream(rpcData)
+	if err != nil {
+		log.Fatalf("OpenDataChunkStream() failed %v", err)
+		return 0, err
+	}
+	var buf = &bytes.Buffer{}
+	n, err = io.Copy(buf, stream)
+	stream.Close()
+	log.Infof("Incoming filename: %s", stream.Metadata.GetFilename())
+	log.Infof("%s", buf.String())
+
+	return n, err
 }

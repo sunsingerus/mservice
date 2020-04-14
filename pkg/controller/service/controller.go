@@ -11,32 +11,3 @@
 // limitations under the License.
 
 package controller_service
-
-import (
-	log "github.com/golang/glog"
-
-	pb "github.com/sunsingerus/mservice/pkg/api/mservice"
-)
-
-func IncomingCommandsHandler(incomingQueue, outgoingQueue chan *pb.Command) {
-	log.Infof("Start IncomingCommandsHandler()")
-	defer log.Infof("Exit IncomingCommandsHandler()")
-
-	for {
-		cmd := <-incomingQueue
-		log.Infof("Got cmd %v", cmd)
-		if cmd.GetType() == pb.CommandType_COMMAND_ECHO_REQUEST {
-			command := pb.NewCommand(
-				pb.CommandType_COMMAND_ECHO_REPLY,
-				"",
-				0,
-				pb.CreateNewUUID(),
-				"reference: "+cmd.GetHeader().GetUuid().StringValue,
-				0,
-				0,
-				"desc",
-			)
-			outgoingQueue <- command
-		}
-	}
-}

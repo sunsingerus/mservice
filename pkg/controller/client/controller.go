@@ -13,12 +13,11 @@
 package controller_client
 
 import (
-	log "github.com/golang/glog"
+	log "github.com/sirupsen/logrus"
 	pb "github.com/sunsingerus/mservice/pkg/api/mservice"
 	"github.com/sunsingerus/mservice/pkg/transiever/client"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 func SendFile(client pb.MServiceControlPlaneClient, filename string) (int64, error) {
@@ -35,56 +34,14 @@ func SendFile(client pb.MServiceControlPlaneClient, filename string) (int64, err
 
 	log.Infof("START send file %s", filename)
 	metadata := pb.NewMetadata(filepath.Base(filename))
-	n, err := transiever_client.StreamDataChunks(client, metadata, f)
+	n, err := transiever_client.Exchange(client, metadata, f)
 	log.Infof("DONE send file %s size %d err %v", filename, n, err)
 
 	return n, err
 }
 
 func SendStdin(client pb.MServiceControlPlaneClient) (int64, error) {
-	n, err := transiever_client.StreamDataChunks(client, nil, os.Stdin)
+	n, err := transiever_client.Exchange(client, nil, os.Stdin)
 	log.Infof("DONE send %s size %d err %v", os.Stdin.Name(), n, err)
 	return n, err
-}
-
-func SendEchoRequest(outgoingQueue chan *pb.Command) {
-	for i := 0; i < 5; i++ {
-		command := pb.NewCommand(
-			pb.CommandType_COMMAND_ECHO_REQUEST,
-			"",
-			0,
-			pb.CreateNewUUID(),
-			"",
-			0,
-			0,
-			"desc",
-		)
-		outgoingQueue <- command
-
-		log.Infof("Wait before send new Echo Request")
-		time.Sleep(3 * time.Second)
-	}
-}
-
-func IncomingCommandsHandler(incomingQueue, outgoingQueue chan *pb.Command) {
-	log.Infof("Start IncomingCommandsHandler()")
-	defer log.Infof("Exit IncomingCommandsHandler()")
-
-	for {
-		cmd := <-incomingQueue
-		log.Infof("Got cmd %v", cmd)
-		if cmd.GetType() == pb.CommandType_COMMAND_ECHO_REQUEST {
-			command := pb.NewCommand(
-				pb.CommandType_COMMAND_ECHO_REPLY,
-				"",
-				0,
-				pb.CreateNewUUID(),
-				"reference: "+cmd.GetHeader().GetUuid().StringValue,
-				0,
-				0,
-				"desc",
-			)
-			outgoingQueue <- command
-		}
-	}
 }

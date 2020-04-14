@@ -34,7 +34,8 @@ func Test(t *testing.T) {
 	grpctest.RunSubTests(t, s{})
 }
 
-var msg = datapb.NewDataChunk(datapb.NewMetadata("qwe.txt"), nil, true, []byte("some data goes here"))
+var request = datapb.NewDataChunk(datapb.NewMetadata("qwe.txt"), nil, true, []byte("some data goes here"))
+var reply = datapb.NewDataChunk(datapb.NewMetadata("returnback.file"), nil, true, []byte("SOME DATA GOES HERE"))
 
 func (s) TestData(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -49,7 +50,7 @@ func (s) TestData(t *testing.T) {
 	).Return(nil)
 
 	// Set expectation on receiving.
-	stream.EXPECT().Recv().Return(msg, nil)
+	stream.EXPECT().Recv().Return(reply, nil)
 	stream.EXPECT().CloseSend().Return(nil)
 
 	// Create mock for the client interface.
@@ -71,7 +72,7 @@ func testData(client datapb.MServiceControlPlaneClient) error {
 	if err != nil {
 		return err
 	}
-	if err := stream.Send(msg); err != nil {
+	if err := stream.Send(request); err != nil {
 		return err
 	}
 	if err := stream.CloseSend(); err != nil {
@@ -81,8 +82,8 @@ func testData(client datapb.MServiceControlPlaneClient) error {
 	if err != nil {
 		return err
 	}
-	if !proto.Equal(got, msg) {
-		return fmt.Errorf("stream.Recv() = %v, want %v", got, msg)
+	if !proto.Equal(got, reply) {
+		return fmt.Errorf("stream.Recv() = %v, want %v", got, reply)
 	}
 	return nil
 }

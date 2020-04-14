@@ -16,18 +16,18 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	log "github.com/golang/glog"
-	controller "github.com/sunsingerus/mservice/pkg/controller/service"
-	"github.com/sunsingerus/mservice/pkg/transiever/health"
-	"github.com/sunsingerus/mservice/pkg/transiever/service"
-	"google.golang.org/grpc"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+
 	pbHealth "github.com/sunsingerus/mservice/pkg/api/health"
 	pbMService "github.com/sunsingerus/mservice/pkg/api/mservice"
+	"github.com/sunsingerus/mservice/pkg/transiever/health"
+	"github.com/sunsingerus/mservice/pkg/transiever/service"
 	"github.com/sunsingerus/mservice/pkg/version"
 )
 
@@ -57,6 +57,8 @@ func init() {
 
 // Run is an entry point of the application
 func Run() {
+	log.SetFormatter(&log.TextFormatter{})
+	log.SetLevel(log.TraceLevel)
 
 	if versionRequest {
 		fmt.Printf("%s\n", version.Version)
@@ -76,8 +78,6 @@ func Run() {
 
 	log.Infof("Starting service. Version:%s GitSHA:%s BuiltAt:%s\n", version.Version, version.GitSHA, version.BuiltAt)
 
-	transiever_service.Init()
-
 	log.Infof("Listening on %s", serviceAddress)
 	listener, err := net.Listen("tcp", serviceAddress)
 	if err != nil {
@@ -96,8 +96,7 @@ func Run() {
 		}
 	}()
 
-	go controller.IncomingCommandsHandler(transiever_service.GetIncomingQueue(), transiever_service.GetOutgoingQueue())
-
+	log.Infof("Press Ctrl+C to exit...")
 	<-ctx.Done()
 }
 

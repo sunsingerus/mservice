@@ -2,13 +2,14 @@ package server_test
 
 import (
 	"context"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/test/bufconn"
-	"log"
 	"net"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/test/bufconn"
+
 	pb "github.com/sunsingerus/mservice/pkg/api/mservice"
 	"github.com/sunsingerus/mservice/pkg/transiever/service"
 )
@@ -32,6 +33,12 @@ func bufDialer(context.Context, string) (net.Conn, error) {
 	return lis.Dial()
 }
 
+var (
+	request = pb.NewDataChunk(pb.NewMetadata("qwe.txt"), nil, true, []byte("some data goes here"))
+	zero    uint64
+	reply   = pb.NewDataChunk(pb.NewMetadata("returnback.file"), &zero, false, []byte("SOME DATA GOES HERE"))
+)
+
 func TestData(t *testing.T) {
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithInsecure())
@@ -45,8 +52,7 @@ func TestData(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TestData failed: %v", err)
 	}
-	msg := pb.NewDataChunk(pb.NewMetadata("qwe.txt"), nil, true, []byte("some data goes here"))
-	if err := stream.Send(msg); err != nil {
+	if err := stream.Send(request); err != nil {
 		t.Fatalf("TestData failed: %v", err)
 	}
 	if err := stream.CloseSend(); err != nil {
@@ -56,7 +62,7 @@ func TestData(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TestData failed: %v", err)
 	}
-	if !proto.Equal(got, msg) {
-		t.Fatalf("stream.Recv() = %v, want %v", got, msg)
+	if !proto.Equal(got, reply) {
+		t.Fatalf("stream.Recv() =\n%v\nwant=\n%v", got, reply)
 	}
 }
