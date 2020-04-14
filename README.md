@@ -18,6 +18,7 @@ This is a gRPC client+service boilerplate. It exposes bi-directional stream serv
 
 
 ## Most interesting parts are:
+- DataChunkStream - inspired by `os.File` stream of data chunks. Located in [pkg/api/mservice/type_datachunkstream.go](pkg/api/mservice/type_datachunkstream.go) 
 - Client server-less tests, located in [pkg/test/client](pkg/test/client). Based on `mockgen`-generated mocks
 - Service client-less tests, located in [pkg/test/service](pkg/test/service). Based on custom dialer, network not used 
 

@@ -24,25 +24,13 @@ type DataChunkSenderReceiver interface {
 	Recv() (*DataChunk, error)
 }
 
-// OutgoingDataChunkStream is a handler to open stream of DataChunk's
-// Inspired by os.File handler and is expected to be used in the same context
-// OpenDataStream()
-// Write()
-// Close()
-// it implements the following interfaces:
+// DataChunkStream is a handler to open stream of DataChunk's
+// Inspired by os.File handler and is expected to be used in the same context.
+// DataChunkStream implements the following interfaces:
 //	- io.Writer
-//	- io.Closer
 //	- io.WriterTo
-// and thus can be used in any functions, which operate these interfaces, such as io.Copy()
-// IncomingDataChunkStream is a handler to open stream of DataChunk's
-// Inspired by os.File handler and is expected to be used in the same context
-// OpenDataStream()
-// Write()
-// Close()
-// it implements the following interfaces:
-//	- io.Writer
+//  - io.ReaderFrom
 //	- io.Closer
-//	- io.WriterTo
 // and thus can be used in any functions, which operate these interfaces, such as io.Copy()
 type DataChunkStream struct {
 	Owner DataChunkSenderReceiver
