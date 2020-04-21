@@ -21,7 +21,7 @@ fi
 
 if [[ -z "${MAIN_SRC_FILE}" ]]; then
     # Not specified, requires default value
-    MAIN_SRC_FILE="${SRC_ROOT}/executable/service/main.go"
+    MAIN_SRC_FILE="${SRC_ROOT}/cmd/service/main.go"
 fi
 
 GOOS=linux

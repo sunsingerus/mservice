@@ -13,10 +13,10 @@
 package main
 
 import (
-	"github.com/sunsingerus/mservice/executable/client/cmd"
+	"github.com/sunsingerus/mservice/cmd/service/cmd"
 )
 
 func main() {
 	// Application entry point
-	cmd.Execute()
+	cmd.Run()
 }
