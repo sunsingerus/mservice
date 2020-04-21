@@ -10,7 +10,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package transiever_service
+package control_plane
 
 import (
 	"bytes"
@@ -22,18 +22,20 @@ import (
 	pb "github.com/sunsingerus/mservice/pkg/api/mservice"
 )
 
-type MServiceControlPlaneEndpoint struct {
+// MServiceControlPlaneService is an implementation of gRPC MServiceControlPlane Service
+type Server struct {
 	pb.UnimplementedMServiceControlPlaneServer
 }
 
-func (s *MServiceControlPlaneEndpoint) Data(server pb.MServiceControlPlane_DataServer) error {
+// Data is a data processing function in gRPC MServiceControlPlane Service
+// It received string, makes it uppercase and sends back to client
+func (s *Server) Data(server pb.MServiceControlPlane_DataServer) error {
 	log.Info("Data() called")
 	defer log.Info("Data() exited")
 
-	// Receive data
-
 	log.Infof("Receive from Client")
 
+	// Receive data
 	stream, err := pb.OpenDataChunkStream(server)
 	if err != nil {
 		log.Fatalf("OpenIncomingDataChunkStream() failed %v", err)
@@ -45,10 +47,11 @@ func (s *MServiceControlPlaneEndpoint) Data(server pb.MServiceControlPlane_DataS
 	log.Infof("%s", buf.String())
 	stream.Close()
 
-	// Send back
+	// Process data
 	var buf2 = &bytes.Buffer{}
 	buf2.WriteString(strings.ToUpper(buf.String()))
 
+	// Send response
 	log.Infof("Send to Client")
 	stream, err = pb.OpenDataChunkStream(server)
 	if err != nil {

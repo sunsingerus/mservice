@@ -10,7 +10,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package transiever_health
+package health
 
 import (
 	"context"
@@ -18,16 +18,16 @@ import (
 	pb "github.com/sunsingerus/mservice/pkg/api/health"
 )
 
-type HealthEndpoint struct {
+type Server struct {
 	pb.UnimplementedHealthServer
 }
 
-func (h *HealthEndpoint) Check(ctx context.Context, args *pb.HealthCheckRequest) (*pb.HealthCheckResponse, error) {
+func (h *Server) Check(ctx context.Context, args *pb.HealthCheckRequest) (*pb.HealthCheckResponse, error) {
 	return &pb.HealthCheckResponse{
 		Status: pb.HealthCheckResponse_SERVING,
 	}, nil
 }
 
-func (h *HealthEndpoint) Watch(*pb.HealthCheckRequest, pb.Health_WatchServer) error {
+func (h *Server) Watch(*pb.HealthCheckRequest, pb.Health_WatchServer) error {
 	return nil
 }

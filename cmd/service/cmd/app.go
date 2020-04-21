@@ -26,8 +26,8 @@ import (
 
 	pbHealth "github.com/sunsingerus/mservice/pkg/api/health"
 	pbMService "github.com/sunsingerus/mservice/pkg/api/mservice"
-	"github.com/sunsingerus/mservice/pkg/transiever/health"
-	"github.com/sunsingerus/mservice/pkg/transiever/service"
+	"github.com/sunsingerus/mservice/pkg/controller/service/control_plane"
+	"github.com/sunsingerus/mservice/pkg/controller/service/health"
 	"github.com/sunsingerus/mservice/pkg/version"
 )
 
@@ -86,8 +86,8 @@ func Run() {
 	}
 
 	grpcServer := grpc.NewServer(getGRPCServerOptions()...)
-	pbMService.RegisterMServiceControlPlaneServer(grpcServer, &transiever_service.MServiceControlPlaneEndpoint{})
-	pbHealth.RegisterHealthServer(grpcServer, &transiever_health.HealthEndpoint{})
+	pbMService.RegisterMServiceControlPlaneServer(grpcServer, &control_plane.Server{})
+	pbHealth.RegisterHealthServer(grpcServer, &health.Server{})
 
 	go func() {
 		if err := grpcServer.Serve(listener); err != nil {

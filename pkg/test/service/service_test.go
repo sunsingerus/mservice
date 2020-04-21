@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 
 	pb "github.com/sunsingerus/mservice/pkg/api/mservice"
-	"github.com/sunsingerus/mservice/pkg/transiever/service"
+	"github.com/sunsingerus/mservice/pkg/controller/service/control_plane"
 )
 
 const bufSize = 1024 * 1024
@@ -21,7 +21,7 @@ var lis *bufconn.Listener
 func init() {
 	lis = bufconn.Listen(bufSize)
 	s := grpc.NewServer()
-	pb.RegisterMServiceControlPlaneServer(s, &transiever_service.MServiceControlPlaneEndpoint{})
+	pb.RegisterMServiceControlPlaneServer(s, &control_plane.Server{})
 	go func() {
 		if err := s.Serve(lis); err != nil {
 			log.Fatalf("Server exited with error: %v", err)
