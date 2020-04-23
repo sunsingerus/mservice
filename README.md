@@ -1,6 +1,6 @@
-# gRPC service + client
+# gRPC service + client boilerplate / scaffolding
 
-Project status
+Project status badges
 
 
 [![CircleCI](https://circleci.com/gh/sunsingerus/mservice.svg?style=svg)](https://circleci.com/gh/sunsingerus/mservice)
@@ -9,45 +9,33 @@ Project status
 [![Go Report Card](https://goreportcard.com/badge/github.com/sunsingerus/mservice)](https://goreportcard.com/report/github.com/sunsingerus/mservice)
 
 ## What is this
-This is a gRPC client+service boilerplate. It exposes bi-directional stream service which consumes text file and uppercases it.
+This is a gRPC client+service boilerplate / scaffolding. 
+It exposes bi-directional stream service which consumes text file and upper-cases it.
  
 
-## How to run
-- Run service as `./dev/run_service.sh` in one console
-- Run client as `./dev/run_client.sh` in another console
-
-
 ## Most interesting parts are:
-- DataChunkStream - inspired by `os.File` stream of data chunks. Located in [pkg/api/mservice/type_datachunkstream.go](pkg/api/mservice/type_datachunkstream.go) 
-- Client server-less tests, located in [pkg/test/client](pkg/test/client). Based on `mockgen`-generated mocks
-- Service client-less tests, located in [pkg/test/service](pkg/test/service). Based on custom dialer, network not used 
+- `DataChunkFile` - ordered stream of data chunks with start/stop marks. 
+  Used to transfer custom-sized data (possibly accompanied by metadata) over gRPC stream. 
+  Inspired by `os.File`, implements `io.Writer`, `io.WriterTo`, `io.ReaderFrom`, `io.Closer` interfaces and thus is compatible/applicable in such functions as `io.Copy(dst, src)`.
+  Located in [pkg/api/mservice/type_data_chunk_filem.go](pkg/api/mservice/type_data_chunk_file.go). 
+- Client server-less tests, based on `mockgen`-generated server-side mocks.
+  Located in [pkg/controller/client/client_test.go](pkg/controller/client/client_test.go).
+- Service tests
+  - Client-less tests, used to test both `DataChunk` chunker/tansfer/aggregator and sever-side functionality
+  - Network-less round-trip tests, used to test whole round-trip communication, with full-blown Server, launched during test case and Client dialing to Server.
+    Based on custom in-memory dialer, network not used.
+     
+  Located in [pkg/controller/service/control_plane/server_test.go](pkg/controller/service/control_plane/server_test.go).
+  Service tests allow to both test service and transport layer functionality.
+- Complex `protobuf` nested messages with optional fields. accompanied by wrapper `Set*` functions.
+  Wrapper functions are helpful, because generator generate `Get*` functions, but omit `Set*` functions, which is not convenient for messages with multiple optional fields. 
+   
 
-## How to install `protoc`
+---
+## Additional reading
 
-- Download latest protobuf release from [here](https://github.com/protocolbuffers/protobuf/releases)
-- We'll have something like `protoc-3.11.4-linux-x86_64.zip` with the following structure:
-```text
-    bin
-        protoc
-    include
-        google
-            protobuf
-                ... many files here ...
-```
-- Place `bin` into `$PATH`-searchable - `bin`
-- Place `include` near `bin`, so we'll have something like the following:
-```text
-    bin
-        ... $PATH-searchable bin folder ...
-        ... you may have your old bin files ...
-        protoc
-    include
-        google
-            protobuf
-                ... many files here ...
-``` 
+- [How to run client and server parts][run]
+- [How to install `protoc` compiler][protoc]
 
-Having these done correctly, we'll be avle to compile with `protoc` files with `include` statements, like the following:
-```.proto
-import "google/protobuf/timestamp.proto";
-```
+[protoc]: ./docs/protoc.md
+[run]: ./docs/run.md
