@@ -1,6 +1,0 @@
-apiVersion: "zookeeper.pravega.io/v1beta1"
-kind: "ZookeeperCluster"
-metadata:
-  name: "zk"
-spec:
-  replicas: 3
