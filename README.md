@@ -17,7 +17,7 @@ It exposes bi-directional stream service which consumes text file and upper-case
 - `DataChunkFile` - ordered stream of data chunks with start/stop marks. 
   Used to transfer custom-sized data (possibly accompanied by metadata) over gRPC stream. 
   Inspired by `os.File`, implements `io.Writer`, `io.WriterTo`, `io.ReaderFrom`, `io.Closer` interfaces and thus is compatible/applicable in such functions as `io.Copy(dst, src)`.
-  Located in [pkg/api/mservice/type_data_chunk_filem.go](pkg/api/mservice/type_data_chunk_file.go). 
+  Located in [pkg/api/mservice/type_data_chunk_file.go](pkg/api/mservice/type_data_chunk_file.go). 
 - Client server-less tests, based on `mockgen`-generated server-side mocks.
   Located in [pkg/controller/client/client_test.go](pkg/controller/client/client_test.go).
 - Service tests
