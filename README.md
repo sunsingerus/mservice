@@ -30,6 +30,10 @@ It exposes bi-directional stream service which consumes text file and upper-case
 - Complex `protobuf` nested messages with optional fields. accompanied by wrapper `Set*` functions.
   Wrapper functions are helpful, because generator generate `Get*` functions, but omit `Set*` functions, which is not convenient for messages with multiple optional fields. 
   Located in [pkg/api/mservice](pkg/api/mservice).
+- Multiple housekeeping scripts for convenient code formatting, generating, testing, docker image building, etc.
+  Located in [dev](dev) folder.
+- Kubernetes deployment manifests.
+  Located in [deploy](deploy) folder.
    
 
 ---
