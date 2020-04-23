@@ -30,12 +30,7 @@ fi
     echo "Starting ${EXECUTABLE_BINARY}..."
 
     mkdir -p "${LOG_DIR}"
-    "${EXECUTABLE_BINARY}" \
-    	-alsologtostderr=true \
-    	-log_dir=log \
-    	-v=1
-#	-logtostderr=true \
-#	-stderrthreshold=FATAL \
+    "${EXECUTABLE_BINARY}"
 
 # -log_dir=log Log files will be written to this directory instead of the default temporary directory
 # -alsologtostderr=true Logs are written to standard error as well as to files
