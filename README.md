@@ -14,6 +14,9 @@ It exposes bi-directional stream service which consumes text file and upper-case
  
 
 ## Most interesting parts are:
+- Complex `protobuf` nested messages with optional fields. accompanied by wrapper `Set*` functions.
+  Wrapper functions are helpful, because generator generate `Get*` functions, but omit `Set*` functions, which is not convenient for messages with multiple optional fields. 
+  Located in [pkg/api/mservice](pkg/api/mservice).
 - `DataChunkFile` - ordered stream of data chunks with start/stop marks. 
   Used to transfer custom-sized data (possibly accompanied by metadata) over gRPC stream. 
   Inspired by `os.File`, implements `io.Writer`, `io.WriterTo`, `io.ReaderFrom`, `io.Closer` interfaces and thus is compatible/applicable in such functions as `io.Copy(dst, src)`.
@@ -27,10 +30,7 @@ It exposes bi-directional stream service which consumes text file and upper-case
      
   Located in [pkg/controller/service/control_plane/server_test.go](pkg/controller/service/control_plane/server_test.go).
   Service tests allow to both test service and transport layer functionality.
-- Complex `protobuf` nested messages with optional fields. accompanied by wrapper `Set*` functions.
-  Wrapper functions are helpful, because generator generate `Get*` functions, but omit `Set*` functions, which is not convenient for messages with multiple optional fields. 
-  Located in [pkg/api/mservice](pkg/api/mservice).
-- Multiple housekeeping scripts for convenient code formatting, generating, testing, docker image building, etc.
+- Multiple housekeeping scripts for convenient project client/service launch, code formatting, code generating, testing, docker image building, etc.
   Located in [dev](dev) folder.
 - Kubernetes deployment manifests.
   Located in [deploy](deploy) folder.
