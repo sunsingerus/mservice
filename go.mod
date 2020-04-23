@@ -7,6 +7,7 @@ require (
 	github.com/golang/mock v1.4.3
 	github.com/golang/protobuf v1.3.5
 	github.com/google/uuid v1.1.1
+	github.com/maxatome/go-testdeep v1.4.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/sirupsen/logrus v1.5.0
 	github.com/spf13/cobra v1.0.0
