@@ -29,6 +29,7 @@ It exposes bi-directional stream service which consumes text file and upper-case
   Service tests allow to both test service and transport layer functionality.
 - Complex `protobuf` nested messages with optional fields. accompanied by wrapper `Set*` functions.
   Wrapper functions are helpful, because generator generate `Get*` functions, but omit `Set*` functions, which is not convenient for messages with multiple optional fields. 
+  Located in [pkg/api/mservice](pkg/api/mservice).
    
 
 ---
